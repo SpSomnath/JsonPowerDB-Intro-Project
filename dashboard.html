@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>User Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="http://login2explore.com/jpdb/resources/js/0.0.3/jpdb-commons.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h2 class="mb-4 text-center" id="welcome">User Dashboard</h2>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped text-center">
+          <thead class="table-primary">
+            <tr>
+              <th>#</th>
+              <th>Full Name</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Password</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="userTable">
+            <tr>
+              <td id="userId">1</td>
+              <td id="Name">Full Name</td>
+              <td id="username">Username</td>
+              <td id="email">Email</td>
+              <td id="password">Password</td>
+              <td>
+                <button class="btn btn-warning btn-sm">Update</button>
+                <button class="btn btn-danger btn-sm">Delete</button>
+              </td>
+            </tr>
+            <!-- Add more rows as needed -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+
+      const username = getQueryParam("username");
+      if (username) {
+        document.getElementById("welcome").textContent =
+          "Welcome, " + username + "!";
+        GetAllData();
+      } else {
+        window.location.href = "login.html";
+      }
+      function executeCommand(reqString, dbBaseUrl, apiEndPointUrl) {
+        var url = dbBaseUrl + apiEndPointUrl;
+        var jsonObj;
+        $.post(url, reqString, function (result) {
+          jsonObj = JSON.parse(result);
+        }).fail(function (result) {
+          var dataJsonObj = result.responseText;
+          jsonObj = JSON.parse(dataJsonObj);
+        });
+        return jsonObj;
+      }
+      function GetAllData() {
+        var token = "90934934|-31949248382090903|90959401";
+        var dbname = "CRM";
+        var relationName = "User-Data";
+        const username = getQueryParam("username");
+        var jsonStr = {
+          Username: username,
+        };
+        var reqString = createGETRequest(
+          token,
+          dbname,
+          relationName,
+          JSON.stringify(jsonStr)
+        );
+        alert(reqString);
+        jQuery.ajaxSetup({ async: false });
+        var resultObj = executeCommand(
+          reqString,
+          "http://api.login2explore.com:5577",
+          "/api/irl"
+        );
+        jQuery.ajaxSetup({ async: true });
+
+        var data = JSON.stringify(resultObj);
+
+        var res = data.split('"');
+        console.log(res);
+        var userId = res[5].replace(",\\", "");
+        var Name = res[18].replace("\\", "");
+        var Username = res[14].replace("\\", "");
+        var Email = res[10].replace("\\", "");
+        var Password = res[22].replace("\\", "");
+        console.log("User ID:", userId);
+        console.log("Name:", Name);
+        console.log("Username:", Username);
+        console.log("Email:", Email);
+        console.log("Password:", Password);
+
+        document.getElementById("userId").textContent = userId;
+        document.getElementById("Name").textContent = Name;
+        document.getElementById("username").textContent = Username;
+        document.getElementById("email").textContent = Email;
+        document.getElementById("password").textContent = Password;
+      }
+      function updateData(){
+            var token = "90934934|-31949248382090903|90959401";
+            var dbname = "CRM";
+            var relationName = "User-Data";
+            var userId = parseInt(document.getElementById("userId").textContent);
+            var password = document.getElementById("password").value;
+            
+            var jsonObj = {
+                Password : password,
+            };
+            var reqString = createUPDATERecordRequest(token, JSON.stringify(jsonObj), dbname, relationName, roll);
+            alert(reqString);
+            jQuery.ajaxSetup({async: false});
+            var resultObj = executeCommand(reqString,
+                    "http://api.login2explore.com:5577", "/api/iml");
+            jQuery.ajaxSetup({async: true});
+            alert(JSON.stringify(resultObj));
+            
+        }
+        function deleteData(){
+            var token = "90934934|-31949248382090903|90959401";
+            var dbname = "CRM";
+            var relationName = "User-Data";
+            var userId = parseInt(document.getElementById("userId").textContent);
+
+            var reqString = createREMOVERecordRequest(token, dbname, relationName, userId);
+            alert(reqString);
+            jQuery.ajaxSetup({async: false});
+            var resultObj = executeCommand(reqString,
+                    "http://api.login2explore.com:5577", "/api/iml");
+            jQuery.ajaxSetup({async: true});
+            alert(JSON.stringify(resultObj));
+            
+        }
+      
+    </script>
+  </body>
+</html>
